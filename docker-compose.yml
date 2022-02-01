@@ -1,0 +1,84 @@
+version: '3.3'
+services:
+  api-gateway:
+    container_name: api-gateway
+    image: api-gateway:1.0.0
+    build:
+      context: ./api-gateway
+    ports:
+      - 5000:5000
+    networks:
+      - api-gateway-network
+      - bookshop-server-network
+      - discounts-server-network
+    depends_on:
+      - bookshop-server
+      - discounts-server
+    volumes:
+      - ./:/usr/src/app
+    restart: unless-stopped
+
+  bookshop-server:
+    container_name: bookshop-server
+    image: bookshop-server:1.0.0
+    build:
+      context: ./bookshop-server
+    ports:
+      - 5002:5002
+    networks:
+      - bookshop-server-network
+    restart: unless-stopped
+
+  discounts-server:
+    container_name: discounts-server
+    image: discounts-server:1.0.0
+    build:
+      context: ./discounts-server
+    ports:
+      - 5001:5001
+    networks:
+      - discounts-server-network
+    restart: unless-stopped
+
+  mongo-db:
+    image: "mongo"
+    container_name: mongo-db
+    networks:
+      - bookshop-server-network
+      - discounts-server-network
+    ports:
+      - '27018:27018'
+    command: mongod --port 27018
+    restart: "on-failure"
+
+  bookshop-app:
+    container_name: bookshop-app
+    image: bookshop-app:1.0.0
+    build:
+      context: ./bookshop-app
+    ports:
+      - 3000:3000
+    networks:
+      - bookshop-network
+    restart: unless-stopped
+
+  view-book-app:
+    container_name: view-book-app
+    image: view-book-app:1.0.0
+    build:
+      context: ./view-book-app
+    ports:
+      - 3001:3001
+    networks:
+      - bookshop-network
+    restart: unless-stopped
+
+networks:
+  api-gateway-network:
+    driver: bridge
+  bookshop-server-network:
+    driver: bridge
+  discounts-server-network:
+    driver: bridge
+  bookshop-network:
+    driver: bridge
